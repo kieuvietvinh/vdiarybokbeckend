@@ -3,8 +3,6 @@ import mongoose, { Schema } from "mongoose";
 import dotenv from "dotenv";
 import bodyParser from "body-parser";
 
-
-
 const app = express();
 dotenv.config();
 
@@ -18,7 +16,7 @@ mongoose.connect(MONGOURL).then(() => {
   });
 }).catch((error) => console.error(error));
 
-const categoriesSchema = new mongoose.Schema({
+const categorieSchema = new mongoose.Schema({
   productsName:String,
   idCategory:String,
   productCode:String,
@@ -38,7 +36,7 @@ const productSchema = new mongoose.Schema({
   time: String,
 });
 
-const categoriesModel = mongoose.model("categories", categoriesSchema);
+const CategorieModel = mongoose.model("categories", categorieSchema);
 const ProductModel = mongoose.model("products", productSchema);
 
 app.use((req, res, next) => {
@@ -58,21 +56,53 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 
 app.get("/categories", async (req, res) => {
-  const categorieData = await categoriesModel.find();
+  const categorieData = await CategorieModel.find();
   res.json(categorieData);
 });
+app.get("/categories/:id", async (req, res) => {
+  const categorieId = req.params.id;
+  try {
+    const categorieData = await CategorieModel.findById(categorieId);
+    res.json(categorieData);
+  } catch (error) {
+    res.status(404).json({ message: "Product not found" });
+  }
+});
+app.post("/categories", async (req, res) => {
+  console.log('req.body :', req.body);
+  const categorieData = await CategorieModel.create(req.body);
+  res.json(categorieData);
+});
+app.delete("/categories/:id", async (req, res) => {
+  const categorieId = req.params.id;
+  const categorieData = await CategorieModel.deleteOne({ _id: categorieId });
+  res.json(categorieData);
+});  
+app.put("/categories/:id", async (req, res) => {
+  const updatedCategorie = await CategorieModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  res.json(updatedCategorie);
+});
 
-
+//product
 app.get("/products", async (req, res) => {
   const productData = await ProductModel.find();
   res.json(productData);
 });
+app.get("/products/:id", async (req, res) => {
+  const productId = req.params.id;
+  console.log('productId :', productId);
+  
+  try {
+    const productData = await ProductModel.findById(productId);
+    res.json(productData);
+  } catch (error) {
+    res.status(404).json({ message: "Product not found" });
+  }
+});
 
 app.delete("/products/:id", async (req, res) => {
   const productId = req.params.id;
-  console.log('productId :', productId);
   const productData = await ProductModel.deleteOne({ _id: productId });
-  console.log('productData :', productData);
   res.json(productData);
 });  
 
@@ -82,7 +112,7 @@ app.post("/products", async (req, res) => {
   res.json(productData);
 });
 app.put("/products/:id", async (req, res) => {
-  console.log('req.body :', req.body);
+  console.log('req.body1 :', req.body);
   const updatedProduct = await ProductModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
   res.json(updatedProduct);
 });
